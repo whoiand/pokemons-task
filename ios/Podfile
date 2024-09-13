@@ -1,0 +1,34 @@
+require_relative '../node_modules/react-native/scripts/react_native_pods'
+require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
+
+platform :ios, '12.4'
+install! 'cocoapods', :deterministic_uuids => false
+
+target 'RedvikeRNTask' do
+  # Ensure that use_native_modules! is loading the correct config
+  config = use_native_modules!
+
+  # Define flags if not done by get_default_flags
+  flags = get_default_flags()
+
+  use_react_native!(
+    :path => config[:reactNativePath], # This line uses the config set by use_native_modules!
+    # Hermes is now enabled by default
+    :hermes_enabled => true,
+    :fabric_enabled => flags[:fabric_enabled],
+    :flipper_configuration => FlipperConfiguration.enabled,
+    :app_path => "#{Pod::Config.instance.installation_root}/.."
+  )
+
+  target 'RedvikeRNTaskTests' do
+    inherit! :complete
+  end
+
+  post_install do |installer|
+    react_native_post_install(
+      installer,
+      :mac_catalyst_enabled => false
+    )
+    __apply_Xcode_12_5_M1_post_install_workaround(installer)
+  end
+end
